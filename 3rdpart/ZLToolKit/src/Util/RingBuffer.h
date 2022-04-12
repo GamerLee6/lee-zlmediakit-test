@@ -80,6 +80,7 @@ public:
 
 private:
     void onRead(const T &data, bool is_key) {
+        TraceL << "point 3";
         _read_cb(data);
     }
 
@@ -92,6 +93,7 @@ private:
             return;
         }
         _storage->getCache().for_each([&](const std::pair<bool, T> &pr) {
+            TraceL << "point 1";
             onRead(pr.second, pr.first);
         });
     }
@@ -216,6 +218,7 @@ private:
                 onSizeChanged(false);
                 continue;
             }
+            TraceL << "point 0";
             reader->onRead(in, is_key);
             ++it;
         }

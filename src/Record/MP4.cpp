@@ -22,6 +22,7 @@ namespace mediakit {
 static struct mov_buffer_t s_io = {
         [](void *ctx, void *data, uint64_t bytes) {
             MP4FileIO *thiz = (MP4FileIO *) ctx;
+            TraceL << "point 0";
             return thiz->onRead(data, bytes);
         },
         [](void *ctx, const void *data, uint64_t bytes) {
