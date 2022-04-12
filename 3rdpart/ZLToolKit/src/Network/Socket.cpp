@@ -74,9 +74,12 @@ Socket::~Socket() {
 void Socket::setOnRead(onReadCB cb) {
     TraceL << "set On Read";
     LOCK_GUARD(_mtx_event);
+    TraceL << "Lock";
     if (cb) {
+        TraceL << "set On Read.0";
         _on_read = std::move(cb);
     } else {
+        TraceL << "set On Read.1";
         _on_read = [](const Buffer::Ptr &buf, struct sockaddr *, int) {
             WarnL << "Socket not set read callback, data ignored:" << buf->size();
         };
