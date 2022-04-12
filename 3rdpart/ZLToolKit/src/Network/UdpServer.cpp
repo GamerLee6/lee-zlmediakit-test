@@ -226,7 +226,7 @@ const Session::Ptr &UdpServer::createSession(const PeerIdType &id, const Buffer:
 
         TraceL << "point 11";
         std::weak_ptr<Session> weak_session = session;
-        Debug << "Udp server call";
+        DebugL << "Udp server call";
         socket->setOnRead([weak_self, weak_session, id](const Buffer::Ptr &buf, struct sockaddr *addr, int addr_len) {
             auto strong_self = weak_self.lock();
             if (!strong_self) {
