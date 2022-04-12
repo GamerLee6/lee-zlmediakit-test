@@ -337,6 +337,7 @@ void RtspSession::handleReq_RECORD(const Parser &parser){
         }
         TraceL << "point 3.2";
         rtp_info << "url=" << track->getControlUrl(_content_base) << ",";
+        TraceL << track->getControlUrl(_content_base);
     }
     rtp_info.pop_back();
     sendRtspResponse("200 OK", {"RTP-Info", rtp_info});
@@ -1070,8 +1071,9 @@ void RtspSession::startListenPeerUdpData(int track_idx) {
                 }
                 TraceL << "point 111";
                 sock->setOnRead([onUdpData,interleaved](const Buffer::Ptr &pBuf, struct sockaddr *pPeerAddr , int addr_len){
-                    onUdpData(pBuf, pPeerAddr, interleaved);
                     TraceL << "point 112";
+                    onUdpData(pBuf, pPeerAddr, interleaved);
+                    TraceL << "point 113";
                 });
             };
             setEvent(_rtp_socks[track_idx], 2 * track_idx );
