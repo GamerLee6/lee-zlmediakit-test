@@ -337,14 +337,14 @@ void RtspSession::handleReq_RECORD(const Parser &parser){
         }
         TraceL << "point 3.2";
         //test by lee, replace the ip address in the rtsp://XXX.XXX.XXX.XXX:PPPP/live/video/stream=x
-        string innerIP = track->getControlUrl(_content_base);
-        string outterIp = get_peer_ip().data();
-        innerIP = innerIP.replace(7,innerIP.find(":",8)-7,outterIp);      
-        TraceL << innerIP;
-        TraceL << track->getControlUrl(_content_base);
+        // string innerIP = track->getControlUrl(_content_base);
+        // string outterIp = get_peer_ip().data();
+        // innerIP = innerIP.replace(7,innerIP.find(":",8)-7,outterIp);      
+        // TraceL << innerIP;
+        // TraceL << track->getControlUrl(_content_base);
 
-        // rtp_info << "url=" << track->getControlUrl(_content_base) << ",";
-         rtp_info << "url=" << innerIP << ",";
+        rtp_info << "url=" << track->getControlUrl(_content_base) << ",";
+        //  rtp_info << "url=" << innerIP << ",";
     }
     rtp_info.pop_back();
     sendRtspResponse("200 OK", {"RTP-Info", rtp_info});
@@ -1079,7 +1079,7 @@ void RtspSession::startListenPeerUdpData(int track_idx) {
                 TraceL << "point 111";
                 sock->setOnRead([onUdpData,interleaved](const Buffer::Ptr &pBuf, struct sockaddr *pPeerAddr , int addr_len){
                     TraceL << "point 112";
-                    onUdpData(pBuf, pPeerAddr, interleaved);
+                    InfoL << onUdpData(pBuf, pPeerAddr, interleaved);
                     TraceL << "point 113";
                 });
             };
