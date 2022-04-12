@@ -78,6 +78,7 @@ bool DevChannel::inputPCM(char* pcData, int iDataLen, uint32_t uiStamp) {
 }
 
 bool DevChannel::inputH264(const char *data, int len, uint32_t dts, uint32_t pts) {
+    TraceL << "input H264";
     if(dts == 0){
         dts = (uint32_t)_aTicker[0].elapsedTime();
     }

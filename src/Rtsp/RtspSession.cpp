@@ -1089,6 +1089,8 @@ void RtspSession::startListenPeerUdpData(int track_idx) {
                 });
             };
             TraceL << "track_idx:" << track_idx;
+            TraceP(_rtp_socks[track_idx]);
+            TraceP(_rtcp_socks[track_idx]);
             setEvent(_rtp_socks[track_idx], 2 * track_idx );
             setEvent(_rtcp_socks[track_idx], 2 * track_idx + 1 );
         }
