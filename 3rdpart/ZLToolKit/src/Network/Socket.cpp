@@ -295,13 +295,17 @@ ssize_t Socket::onRead(const SockFD::Ptr &sock, bool is_udp) noexcept{
 
         TraceL << "onRead.2";
         if (nread == -1) {
+            TraceL << "onRead.2.0";
             auto err = get_uv_error(true);
+            TraceL << "onRead.2.1";
             if (err != UV_EAGAIN) {
+                TraceL << "onRead.2.2";
                 emitErr(toSockException(err));
             }
             return ret;
         }
 
+        TraceL << "onRead.2-1";
         ret += nread;
         data[nread] = '\0';
         //设置buffer有效数据大小
