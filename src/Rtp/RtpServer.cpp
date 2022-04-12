@@ -124,6 +124,7 @@ void RtpServer::start(uint16_t local_port, const string &stream_id,  bool enable
     //创建udp服务器
     UdpServer::Ptr udp_server;
     RtpProcess::Ptr process;
+    TraceL << "point 1";
     if (!stream_id.empty()) {
         //指定了流id，那么一个端口一个流(不管是否包含多个ssrc的多个流，绑定rtp源后，会筛选掉ip端口不匹配的流)
         //由于是一个端口一个流，单线程处理即可

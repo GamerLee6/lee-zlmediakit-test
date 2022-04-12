@@ -72,6 +72,7 @@ Socket::~Socket() {
 }
 
 void Socket::setOnRead(onReadCB cb) {
+    TraceL << "set On Read";
     LOCK_GUARD(_mtx_event);
     if (cb) {
         _on_read = std::move(cb);

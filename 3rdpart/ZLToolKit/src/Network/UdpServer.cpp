@@ -192,6 +192,7 @@ static Session::Ptr s_null_session;
 
 const Session::Ptr &UdpServer::createSession(const PeerIdType &id, const Buffer::Ptr &buf, struct sockaddr *addr, int addr_len) {
     auto socket = createSocket(_poller, buf, addr, addr_len);
+    TraceL << "point 10";
     if (!socket) {
         //创建socket失败，本次onRead事件收到的数据直接丢弃
         return s_null_session;
@@ -222,6 +223,7 @@ const Session::Ptr &UdpServer::createSession(const PeerIdType &id, const Buffer:
         // 把本服务器的配置传递给 Session
         session->attachServer(*this);
 
+        TraceL << "point 11";
         std::weak_ptr<Session> weak_session = session;
         socket->setOnRead([weak_self, weak_session, id](const Buffer::Ptr &buf, struct sockaddr *addr, int addr_len) {
             auto strong_self = weak_self.lock();

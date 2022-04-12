@@ -83,6 +83,7 @@ void TcpClient::startConnect(const string &url, uint16_t port, float timeout_sec
 }
 
 void TcpClient::onSockConnect(const SockException &ex) {
+    TraceL << "point on sock connect";
     if (ex) {
         //连接失败
         _timer.reset();

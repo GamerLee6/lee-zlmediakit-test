@@ -282,6 +282,7 @@ void RtspPusher::sendSetup(unsigned int track_idx) {
 }
 
 void RtspPusher::handleResSetup(const Parser &parser, unsigned int track_idx) {
+    TraceL << "handle res setup";
     if (parser.Url() != "200") {
         throw std::runtime_error(StrPrinter << "SETUP:" << parser.Url() << " " << parser.Tail() << endl);
     }
@@ -324,6 +325,7 @@ void RtspPusher::handleResSetup(const Parser &parser, unsigned int track_idx) {
         auto srcIP = inet_addr(get_peer_ip().data());
         weak_ptr<RtspPusher> weakSelf = dynamic_pointer_cast<RtspPusher>(shared_from_this());
         if(rtcp_sock) {
+            TraceL << "handle res setup.0";
             //设置rtcp over udp接收回调处理函数
             rtcp_sock->setOnRead([srcIP, track_idx, weakSelf](const Buffer::Ptr &buf, struct sockaddr *addr , int addr_len) {
                 auto strongSelf = weakSelf.lock();

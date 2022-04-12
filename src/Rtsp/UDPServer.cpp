@@ -27,7 +27,7 @@ UDPServer::~UDPServer() {
 }
 
 Socket::Ptr UDPServer::getSock(SocketHelper &helper, const char* local_ip, int interleaved, uint16_t local_port) {
-    InfoL << "UDP get Sock";
+    TraceL << "UDP get Sock";
     lock_guard<mutex> lck(_mtx_udp_sock);
     string key = StrPrinter << local_ip << ":" << interleaved << endl;
     auto it = _udp_sock_map.find(key);

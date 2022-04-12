@@ -98,6 +98,7 @@ void TcpServer::cloneFrom(const TcpServer &that) {
 
 // 接收到客户端连接请求
 void TcpServer::onAcceptConnection(const Socket::Ptr &sock) {
+    TraceL << "point 1";
     assert(_poller->isCurrentThread());
     weak_ptr<TcpServer> weak_self = std::dynamic_pointer_cast<TcpServer>(shared_from_this());
     //创建一个TcpSession;这里实现创建不同的服务会话实例
