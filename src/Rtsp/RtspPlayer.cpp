@@ -343,6 +343,7 @@ void RtspPlayer::handleResSETUP(const Parser &parser, unsigned int track_idx) {
         weak_ptr<RtspPlayer> weakSelf = dynamic_pointer_cast<RtspPlayer>(shared_from_this());
         InfoL << "point 9.3";
         //设置rtp over udp接收回调处理函数
+        DebugL << "rtspplayer call";
         pRtpSockRef->setOnRead([srcIP, track_idx, weakSelf](const Buffer::Ptr &buf, struct sockaddr *addr , int addr_len) {
             auto strongSelf = weakSelf.lock();
             if (!strongSelf) {
@@ -359,6 +360,7 @@ void RtspPlayer::handleResSETUP(const Parser &parser, unsigned int track_idx) {
         if(pRtcpSockRef) {
             InfoL << "point 9.4";
             //设置rtcp over udp接收回调处理函数
+            DebugL << "rtspplayer call";
             pRtcpSockRef->setOnRead([srcIP, track_idx, weakSelf](const Buffer::Ptr &buf, struct sockaddr *addr , int addr_len) {
                 auto strongSelf = weakSelf.lock();
                 if (!strongSelf) {

@@ -128,6 +128,7 @@ int main(int argc,char *argv[]){
                 socket->setOnErr([](const SockException &err){
                     WarnL << err.what();
                 });
+                DebugL << "testing pingpong call";
                 socket->setOnRead([interval,socket](const Buffer::Ptr &buffer, struct sockaddr *addr , int addr_len){
                     if(!interval){
                         socket->send(buffer);

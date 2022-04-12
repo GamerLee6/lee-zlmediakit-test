@@ -47,6 +47,7 @@ public:
     void startRtcp(){
         InfoL << "point 2";
         weak_ptr<RtcpHelper> weak_self = shared_from_this();
+        DebugL << "rtp server call";
         _rtcp_sock->setOnRead([weak_self](const Buffer::Ptr &buf, struct sockaddr *addr, int addr_len) {
             //用于接受rtcp打洞包
             auto strong_self = weak_self.lock();
@@ -131,6 +132,7 @@ void RtpServer::start(uint16_t local_port, const string &stream_id,  bool enable
         process = RtpSelector::Instance().getProcess(stream_id, true);
         RtcpHelper::Ptr helper = std::make_shared<RtcpHelper>(std::move(rtcp_socket), 90000);
         helper->startRtcp();
+        DebugL << "rtp server call";
         rtp_socket->setOnRead([rtp_socket, process, helper](const Buffer::Ptr &buf, struct sockaddr *addr, int addr_len) {
             process->inputRtp(true, rtp_socket, buf->data(), buf->size(), addr);
             helper->onRecvRtp(buf, addr, addr_len);
@@ -145,6 +147,7 @@ void RtpServer::start(uint16_t local_port, const string &stream_id,  bool enable
 #else
         //单端口单线程接收多个流
         auto &ref = RtpSelector::Instance();
+        DebugL << "rtp server call";
         rtp_socket->setOnRead([&ref, rtp_socket](const Buffer::Ptr &buf, struct sockaddr *addr, int) {
             ref.inputRtp(rtp_socket, buf->data(), buf->size(), addr);
         });
@@ -153,6 +156,7 @@ void RtpServer::start(uint16_t local_port, const string &stream_id,  bool enable
 
     _on_clearup = [rtp_socket, process, stream_id]() {
         if (rtp_socket) {
+            DebugL << "rtp server call";
             //去除循环引用
             rtp_socket->setOnRead(nullptr);
         }

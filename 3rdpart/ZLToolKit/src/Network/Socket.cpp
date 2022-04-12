@@ -60,6 +60,7 @@ Socket::Socket(const EventPoller::Ptr &poller, bool enable_mutex) :
     if (!_poller) {
         _poller = EventPollerPool::Instance().getPoller();
     }
+    DebugL << "socket class init call";
     setOnRead(nullptr);
     setOnErr(nullptr);
     setOnAccept(nullptr);

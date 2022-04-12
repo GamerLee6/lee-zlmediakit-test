@@ -107,6 +107,7 @@ void TcpClient::onSockConnect(const SockException &ex) {
         return true;
     });
 
+    DebugL << "TcpClient call";
     sock_ptr->setOnRead([weak_self, sock_ptr](const Buffer::Ptr &pBuf, struct sockaddr *, int) {
         auto strong_self = weak_self.lock();
         if (!strong_self) {

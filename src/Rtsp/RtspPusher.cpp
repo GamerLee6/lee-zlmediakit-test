@@ -327,6 +327,7 @@ void RtspPusher::handleResSetup(const Parser &parser, unsigned int track_idx) {
         if(rtcp_sock) {
             TraceL << "handle res setup.0";
             //设置rtcp over udp接收回调处理函数
+            DebugL << "rtsppusher call";
             rtcp_sock->setOnRead([srcIP, track_idx, weakSelf](const Buffer::Ptr &buf, struct sockaddr *addr , int addr_len) {
                 auto strongSelf = weakSelf.lock();
                 if (!strongSelf) {

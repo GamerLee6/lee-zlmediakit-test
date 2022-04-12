@@ -23,6 +23,7 @@ static UdpServer::PeerIdType makeSockId(sockaddr *addr, int) {
 UdpServer::UdpServer(const EventPoller::Ptr &poller) : Server(poller) {
     setOnCreateSocket(nullptr);
     _socket = createSocket(_poller);
+    DebugL << "Udp server class init call";
     _socket->setOnRead([this](const Buffer::Ptr &buf, struct sockaddr *addr, int addr_len) {
         onRead(buf, addr, addr_len);
     });
@@ -225,6 +226,7 @@ const Session::Ptr &UdpServer::createSession(const PeerIdType &id, const Buffer:
 
         TraceL << "point 11";
         std::weak_ptr<Session> weak_session = session;
+        Debug << "Udp server call";
         socket->setOnRead([weak_self, weak_session, id](const Buffer::Ptr &buf, struct sockaddr *addr, int addr_len) {
             auto strong_self = weak_self.lock();
             if (!strong_self) {
