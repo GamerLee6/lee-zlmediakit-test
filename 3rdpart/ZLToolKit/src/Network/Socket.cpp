@@ -251,6 +251,7 @@ bool Socket::attachEvent(const SockFD::Ptr &sock, bool is_udp) {
     weak_ptr<SockFD> weak_sock = sock;
     _enable_recv = true;
     _read_buffer = _poller->getSharedBuffer();
+    TraceL << "attach Event.4s";
     int result = _poller->addEvent(sock->rawFd(), EventPoller::Event_Read | EventPoller::Event_Error | EventPoller::Event_Write, [weak_self,weak_sock,is_udp](int event) {
         TraceL << "attach Event.0";
         auto strong_self = weak_self.lock();
