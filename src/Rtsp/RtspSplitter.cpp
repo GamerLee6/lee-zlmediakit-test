@@ -12,6 +12,9 @@
 #include "RtspSplitter.h"
 #include "Util/logger.h"
 #include "Util/util.h"
+//test by lee
+#include <sys/syscall.h>
+#include <unistd.h>
 
 using namespace std;
 using namespace toolkit;
@@ -19,6 +22,7 @@ using namespace toolkit;
 namespace mediakit{
 
 const char *RtspSplitter::onSearchPacketTail(const char *data, size_t len) {
+    DebugL << syscall(SYS_gettid);
     TraceL << "point 0";
     auto ret = onSearchPacketTail_l(data, len);
     if(ret){
@@ -37,6 +41,7 @@ const char *RtspSplitter::onSearchPacketTail(const char *data, size_t len) {
 }
 
 const char *RtspSplitter::onSearchPacketTail_l(const char *data, size_t len) {
+    DebugL << syscall(SYS_gettid);
     InfoL << "point 3";
     if(!_enableRecvRtp || data[0] != '$'){
         //这是rtsp包

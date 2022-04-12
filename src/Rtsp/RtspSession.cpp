@@ -323,6 +323,7 @@ void RtspSession::handleReq_ANNOUNCE(const Parser &parser) {
 }
 
 void RtspSession::handleReq_RECORD(const Parser &parser){
+    DebugL << syscall(SYS_gettid);
     InfoL << "point 3";
     if (_sdp_track.empty() || parser["Session"] != _sessionid) {
         send_SessionNotFound();
