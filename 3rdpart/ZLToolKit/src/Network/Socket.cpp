@@ -268,6 +268,8 @@ bool Socket::attachEvent(const SockFD::Ptr &sock, bool is_udp) {
 }
 
 ssize_t Socket::onRead(const SockFD::Ptr &sock, bool is_udp) noexcept{
+
+    TraceL << "onRead";
     ssize_t ret = 0, nread = 0;
     auto sock_fd = sock->rawFd();
 
@@ -278,6 +280,7 @@ ssize_t Socket::onRead(const SockFD::Ptr &sock, bool is_udp) noexcept{
     struct sockaddr addr;
     socklen_t len = sizeof(struct sockaddr);
 
+    TraceL << "onRead.1";
     while (_enable_recv) {
         do {
             nread = recvfrom(sock_fd, data, capacity, 0, &addr, &len);
@@ -290,6 +293,7 @@ ssize_t Socket::onRead(const SockFD::Ptr &sock, bool is_udp) noexcept{
             return ret;
         }
 
+        TraceL << "onRead.2";
         if (nread == -1) {
             auto err = get_uv_error(true);
             if (err != UV_EAGAIN) {
@@ -303,9 +307,12 @@ ssize_t Socket::onRead(const SockFD::Ptr &sock, bool is_udp) noexcept{
         //设置buffer有效数据大小
         _read_buffer->setSize(nread);
 
+        TraceL << "onRead.3";
         //触发回调
         LOCK_GUARD(_mtx_event);
+        TraceL << "onRead.4";
         try {
+            TraceL << "start _on_read";
             //此处捕获异常，目的是防止数据未读尽，epoll边沿触发失效的问题
             _on_read(_read_buffer, &addr, len);
         } catch (std::exception &ex) {

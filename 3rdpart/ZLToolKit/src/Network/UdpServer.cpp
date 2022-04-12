@@ -104,6 +104,7 @@ void UdpServer::cloneFrom(const UdpServer &that) {
 }
 
 void UdpServer::onRead(const Buffer::Ptr &buf, sockaddr *addr, int addr_len) {
+    TraceL << "Udp on read";
     const auto id = makeSockId(addr, addr_len);
     onRead_l(true, id, buf, addr, addr_len);
 }
