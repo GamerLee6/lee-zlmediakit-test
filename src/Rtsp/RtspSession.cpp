@@ -140,6 +140,7 @@ void RtspSession::onWholeRtspPacket(Parser &parser) {
         _media_info.parse(parser.FullUrl());
         _media_info._schema = RTSP_SCHEMA;
     }
+    TraceL << "point 0.0";
 
     using rtsp_request_handler = void (RtspSession::*)(const Parser &parser);
     static unordered_map<string, rtsp_request_handler> s_cmd_functions;
@@ -325,13 +326,16 @@ void RtspSession::handleReq_RECORD(const Parser &parser){
         throw SockException(Err_shutdown, _sdp_track.empty() ? "can not find any availabe track when record" : "session not found when record");
     }
 
+    TraceL << "point 3.0";
     _StrPrinter rtp_info;
     for (auto &track : _sdp_track) {
         if (track->_inited == false) {
+            TraceL << "point 3.1";
             //还有track没有setup
             shutdown(SockException(Err_shutdown, "track not setuped"));
             return;
         }
+        TraceL << "point 3.2";
         rtp_info << "url=" << track->getControlUrl(_content_base) << ",";
     }
     rtp_info.pop_back();
@@ -1046,7 +1050,7 @@ void RtspSession::startListenPeerUdpData(int track_idx) {
         return true;
     };
 
-    InfoL << "_rtp_type:" << _rtp_type; 
+    TraceL << "_rtp_type:" << _rtp_type; 
     switch (_rtp_type){  
         case Rtsp::RTP_MULTICAST:{
             //组播使用的共享rtcp端口
@@ -1057,17 +1061,17 @@ void RtspSession::startListenPeerUdpData(int track_idx) {
         }
             break;
         case Rtsp::RTP_UDP:{
-            InfoL << "inside case RTP_UDP 0";
+            TraceL << "inside case RTP_UDP 0";
             auto setEvent = [&](Socket::Ptr &sock,int interleaved){
                 if(!sock){
-                    InfoL << "point 110";
+                    TraceL << "point 110";
                     WarnP(this) << "udp端口为空:" << interleaved;
                     return;
                 }
-                InfoL << "point 111";
+                TraceL << "point 111";
                 sock->setOnRead([onUdpData,interleaved](const Buffer::Ptr &pBuf, struct sockaddr *pPeerAddr , int addr_len){
                     onUdpData(pBuf, pPeerAddr, interleaved);
-                    InfoL << "point 112";
+                    TraceL << "point 112";
                 });
             };
             setEvent(_rtp_socks[track_idx], 2 * track_idx );

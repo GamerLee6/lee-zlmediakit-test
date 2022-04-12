@@ -19,6 +19,7 @@ using namespace toolkit;
 namespace mediakit{
 
 const char *RtspSplitter::onSearchPacketTail(const char *data, size_t len) {
+    TraceL << "point 0";
     auto ret = onSearchPacketTail_l(data, len);
     if(ret){
         return ret;
