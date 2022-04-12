@@ -336,15 +336,15 @@ void RtspSession::handleReq_RECORD(const Parser &parser){
             return;
         }
         TraceL << "point 3.2";
-        //test by lee, replace the ip address in the rtsp://XXX.XXX.XXX.XXX/live/video/stream=x
-        //get_peer_ip().data();
+        //test by lee, replace the ip address in the rtsp://XXX.XXX.XXX.XXX:PPPP/live/video/stream=x
         string innerIP = track->getControlUrl(_content_base);
-        innerIP = innerIP.replace(7,innerIP.find("/",8),get_peer_ip().data());
-
-        // rtp_info << "url=" << track->getControlUrl(_content_base) << ",";
-        rtp_info << "url=" << innerIP << ",";
+        string outterIp = get_peer_ip().data();
+        innerIP = innerIP.replace(7,innerIP.find(":",8)-7,outterIp);      
         TraceL << innerIP;
         TraceL << track->getControlUrl(_content_base);
+
+        // rtp_info << "url=" << track->getControlUrl(_content_base) << ",";
+         rtp_info << "url=" << innerIP << ",";
     }
     rtp_info.pop_back();
     sendRtspResponse("200 OK", {"RTP-Info", rtp_info});
