@@ -28,6 +28,8 @@ UdpServer::UdpServer(const EventPoller::Ptr &poller) : Server(poller) {
     _socket = createSocket(_poller);
     DebugL << "Udp server class init call";
     _socket->setOnRead([this](const Buffer::Ptr &buf, struct sockaddr *addr, int addr_len) {
+        DebugL << syscall(SYS_gettid);
+        DebugL << "Udp server class init call.0";
         onRead(buf, addr, addr_len);
     });
 }
