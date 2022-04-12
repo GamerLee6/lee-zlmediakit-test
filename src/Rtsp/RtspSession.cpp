@@ -15,6 +15,9 @@
 #include "RtspSession.h"
 #include "Util/MD5.h"
 #include "Util/base64.h"
+//testing by lee
+#include <sys/syscall.h>
+#include <unistd.h>
 
 using namespace std;
 using namespace toolkit;
@@ -1070,6 +1073,7 @@ void RtspSession::startListenPeerUdpData(int track_idx) {
             break;
         case Rtsp::RTP_UDP:{
             TraceL << "inside case RTP_UDP 0";
+            DebugL << syscall(SYS_gettid);
             auto setEvent = [&](Socket::Ptr &sock,int interleaved){
                 if(!sock){
                     TraceL << "point 110";

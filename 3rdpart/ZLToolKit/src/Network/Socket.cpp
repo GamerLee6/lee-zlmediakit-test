@@ -17,6 +17,9 @@
 #include "Thread/semaphore.h"
 #include "Poller/EventPoller.h"
 #include "Thread/WorkThreadPool.h"
+//testing by lee
+#include <sys/syscall.h>
+#include <unistd.h>
 using namespace std;
 
 #define LOCK_GUARD(mtx) lock_guard<decltype(mtx)> lck(mtx)
@@ -73,6 +76,7 @@ Socket::~Socket() {
 }
 
 void Socket::setOnRead(onReadCB cb) {
+    DebugL << syscall(SYS_gettid);
     TraceL << "set On Read";
     LOCK_GUARD(_mtx_event);
     TraceL << "Lock";
