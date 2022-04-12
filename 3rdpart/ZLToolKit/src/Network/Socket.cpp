@@ -268,7 +268,7 @@ bool Socket::attachEvent(const SockFD::Ptr &sock, bool is_udp) {
 }
 
 ssize_t Socket::onRead(const SockFD::Ptr &sock, bool is_udp) noexcept{
-
+    DebugL << syscall(SYS_gettid);
     TraceL << "onRead";
     ssize_t ret = 0, nread = 0;
     auto sock_fd = sock->rawFd();
