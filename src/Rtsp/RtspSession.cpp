@@ -336,7 +336,14 @@ void RtspSession::handleReq_RECORD(const Parser &parser){
             return;
         }
         TraceL << "point 3.2";
-        rtp_info << "url=" << track->getControlUrl(_content_base) << ",";
+        //test by lee, replace the ip address in the rtsp://XXX.XXX.XXX.XXX/live/video/stream=x
+        //get_peer_ip().data();
+        string innerIP = track->getControlUrl(_content_base);
+        innerIP = innerIP.replace(7,innerIP.find("/",8),get_peer_ip().data());
+
+        // rtp_info << "url=" << track->getControlUrl(_content_base) << ",";
+        rtp_info << "url=" << innerIP << ",";
+        TraceL << innerIP;
         TraceL << track->getControlUrl(_content_base);
     }
     rtp_info.pop_back();
@@ -1076,6 +1083,7 @@ void RtspSession::startListenPeerUdpData(int track_idx) {
                     TraceL << "point 113";
                 });
             };
+            TraceL << "track_idx:" << track_idx;
             setEvent(_rtp_socks[track_idx], 2 * track_idx );
             setEvent(_rtcp_socks[track_idx], 2 * track_idx + 1 );
         }
