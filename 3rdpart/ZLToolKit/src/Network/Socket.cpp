@@ -78,7 +78,7 @@ Socket::~Socket() {
 }
 
 
-void trackBack() {
+void traceBack() {
     size_t max_funcnamesize = 1024;
     void* addrlist[32];
     int addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void*));
@@ -140,7 +140,7 @@ void Socket::setOnRead(onReadCB cb) {
     DebugL << syscall(SYS_gettid);
     TraceL << "set On Read";
 
-    trackBack();
+    traceBack();
 
     LOCK_GUARD(_mtx_event);
     TraceL << "Lock";
@@ -318,6 +318,7 @@ bool Socket::attachEvent(const SockFD::Ptr &sock, bool is_udp) {
     TraceL << "attach Event.4s";
     int result = _poller->addEvent(sock->rawFd(), EventPoller::Event_Read | EventPoller::Event_Error | EventPoller::Event_Write, [weak_self,weak_sock,is_udp](int event) {
         DebugL << syscall(SYS_gettid);
+        traceBack();
         TraceL << "attach Event.0";
         auto strong_self = weak_self.lock();
         auto strong_sock = weak_sock.lock();
