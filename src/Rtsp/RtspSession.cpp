@@ -825,6 +825,7 @@ void RtspSession::handleReq_Setup(const Parser &parser) {
         peerAddr.sin_addr.s_addr = inet_addr(get_peer_ip().data());
         bzero(&(peerAddr.sin_zero), sizeof peerAddr.sin_zero);
         pr.second->bindPeerAddr((struct sockaddr *) (&peerAddr));
+        InfoL << "server_port=" << pr.first->get_local_port() << "-" << pr.second->get_local_port();
 
         //尝试获取客户端nat映射地址
         startListenPeerUdpData(trackIdx);
