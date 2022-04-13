@@ -20,6 +20,8 @@
 //testing by lee
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <execinfo.h>
+#include <cxxabi.h>
 using namespace std;
 
 #define LOCK_GUARD(mtx) lock_guard<decltype(mtx)> lck(mtx)
@@ -75,9 +77,71 @@ Socket::~Socket() {
     closeSock();
 }
 
+
+void trackBack() {
+    size_t max_funcnamesize = 1024;
+    void* addrlist[32];
+    int addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void*));
+    char** symbollist = backtrace_symbols(addrlist, addrlen);
+    // for (int i = 0; i < addrlen; i++) {
+    //     printf("%p : %s\n", addrlist[i], demangle(symbollist[i]).c_str());
+    // }
+    char* funcname=(char*)malloc(max_funcnamesize);
+	size_t funcnamesize=max_funcnamesize;
+    for(int i = 1; i < addrlen; i++){
+		char *begin_name = 0, *begin_offset = 0, *end_offset = 0;
+
+		// find parentheses and +address offset surrounding the mangled name:
+		// ./module(function+0x15c) [0x8048a6d]
+		for(char *p = symbollist[i]; *p; ++p){
+			if(*p == '(')
+				begin_name = p;
+			else if(*p == '+')
+				begin_offset = p;
+			else if(*p == ')' && begin_offset){
+				end_offset = p;
+				break;
+			}
+		}
+
+		if(begin_name && begin_offset && end_offset
+				&& begin_name < begin_offset){
+			*begin_name++ = '\0';
+			*begin_offset++ = '\0';
+			*end_offset = '\0';
+
+			// mangled name is now in [begin_name, begin_offset) and caller
+			// offset in [begin_offset, end_offset). now apply
+			// __cxa_demangle():
+
+			int status;
+			char* ret = abi::__cxa_demangle(begin_name,funcname, &funcnamesize, &status);
+			if(status == 0){
+				funcname = ret; // use possibly realloc()-ed string
+                printf("%p : %s : %s + %s\n", addrlist[i], symbollist[i], funcname, begin_offset);
+				// DebugL <<"\n  "<<symbollist[i]<<" : "<<funcname<<"+"<<begin_offset;
+			}else{
+				// demangling failed. Output function name as a C function with
+				// no arguments.
+                printf("%p : %s : %s + %s\n", addrlist[i], symbollist[i], begin_name, begin_offset);
+				// DebugL <<"\n  "<<symbollist[i]<<" : "<<begin_name<<"()+"<<begin_offset;
+			}
+		}else{
+			// couldn't parse the line? print the whole line.
+			DebugL <<"\n  "<<symbollist[i];
+		}
+	}
+
+	free(funcname);
+	free(symbollist);
+}
+
 void Socket::setOnRead(onReadCB cb) {
     DebugL << syscall(SYS_gettid);
     TraceL << "set On Read";
+
+    trackBack();
+
     LOCK_GUARD(_mtx_event);
     TraceL << "Lock";
     if (cb) {

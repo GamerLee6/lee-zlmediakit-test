@@ -92,12 +92,14 @@ EventPoller::~EventPoller() {
 
 int EventPoller::addEvent(int fd, int event, PollEventCB cb) {
     TimeTicker();
+    TraceL << "addEvent";
     if (!cb) {
         WarnL << "PollEventCB 为空!";
         return -1;
     }
 
     if (isCurrentThread()) {
+        TraceL << "addEvent.0";
 #if defined(HAS_EPOLL)
         struct epoll_event ev = {0};
         ev.events = (toEpoll(event)) | EPOLLEXCLUSIVE;
@@ -124,8 +126,10 @@ int EventPoller::addEvent(int fd, int event, PollEventCB cb) {
     }
 
     async([this, fd, event, cb]() {
+        TraceL << "addEvent.1";
         addEvent(fd, event, std::move(const_cast<PollEventCB &>(cb)));
     });
+    TraceL << "addEvent.2";
     return 0;
 }
 
