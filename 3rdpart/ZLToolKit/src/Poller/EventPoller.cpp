@@ -267,7 +267,9 @@ EventPoller::Ptr EventPoller::getCurrentPoller() {
 }
 
 void EventPoller::runLoop(bool blocked, bool ref_self) {
+    TraceL << "run loop";
     if (blocked) {
+        TraceL << "run loop.blocked";
         ThreadPool::setPriority(_priority);
         lock_guard<mutex> lck(_mtx_running);
         _loop_thread_id = this_thread::get_id();
@@ -278,6 +280,7 @@ void EventPoller::runLoop(bool blocked, bool ref_self) {
         _exit_flag = false;
         uint64_t minDelay;
 #if defined(HAS_EPOLL)
+        TraceL << "run loop.block.has_epoll";
         struct epoll_event events[EPOLL_SIZE];
         while (!_exit_flag) {
             minDelay = getMinDelay();
@@ -305,6 +308,7 @@ void EventPoller::runLoop(bool blocked, bool ref_self) {
             }
         }
 #else
+        TraceL << "run loop.block.not_has_epoll";
         int ret, max_fd;
         FdSet set_read, set_write, set_err;
         List<Poll_Record::Ptr> callback_list;
@@ -371,6 +375,7 @@ void EventPoller::runLoop(bool blocked, bool ref_self) {
         }
 #endif //HAS_EPOLL
     } else {
+        TraceL << "run loop.un_block";
         _loop_thread = new thread(&EventPoller::runLoop, this, true, ref_self);
         _sem_run_started.wait();
     }
