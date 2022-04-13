@@ -67,6 +67,7 @@ const char *RtspSplitter::onSearchPacketTail_l(const char *data, size_t len) {
 }
 
 ssize_t RtspSplitter::onRecvHeader(const char *data, size_t len) {
+    DebugL << syscall(SYS_gettid);
     InfoL << "point 1";
     if(_isRtpPacket){
         InfoL << "point 1.1";

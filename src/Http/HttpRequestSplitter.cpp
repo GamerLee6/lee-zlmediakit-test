@@ -11,6 +11,9 @@
 #include "HttpRequestSplitter.h"
 #include "Util/logger.h"
 #include "Util/util.h"
+//test by lee
+#include <sys/syscall.h>
+#include <unistd.h>
 using namespace toolkit;
 using namespace std;
 
@@ -20,6 +23,8 @@ static constexpr size_t kMaxCacheSize = 1 * 1024 * 1024;
 namespace mediakit {
 
 void HttpRequestSplitter::input(const char *data,size_t len) {
+    DebugL << syscall(SYS_gettid);
+    TraceL << "point 0";
     {
         auto size = remainDataSize();
         if (size > kMaxCacheSize) {
@@ -129,6 +134,8 @@ void HttpRequestSplitter::reset() {
 }
 
 const char *HttpRequestSplitter::onSearchPacketTail(const char *data,size_t len) {
+    DebugL << syscall(SYS_gettid);
+    TraceL << "point 1";
     auto pos = strstr(data,"\r\n\r\n");
     if(pos == nullptr){
         return nullptr;

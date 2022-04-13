@@ -135,6 +135,7 @@ void RtspSession::onRecv(const Buffer::Ptr &buf) {
 }
 
 void RtspSession::onWholeRtspPacket(Parser &parser) {
+    DebugL << syscall(SYS_gettid);
     InfoL << "point 0";
     string method = parser.Method(); //提取出请求命令字
     _cseq = atoi(parser["CSeq"].data());
@@ -207,11 +208,14 @@ ssize_t RtspSession::getContentLength(Parser &parser) {
 }
 
 void RtspSession::handleReq_Options(const Parser &parser) {
+    DebugL << syscall(SYS_gettid);
+    InfoL << "point 11";
     //支持这些命令
     sendRtspResponse("200 OK",{"Public" , "OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE, ANNOUNCE, RECORD, SET_PARAMETER, GET_PARAMETER"});
 }
 
 void RtspSession::handleReq_ANNOUNCE(const Parser &parser) {
+    DebugL << syscall(SYS_gettid);
     InfoL << "point 2";
     auto full_url = parser.FullUrl();
     _content_base = full_url;
@@ -272,6 +276,8 @@ void RtspSession::handleReq_ANNOUNCE(const Parser &parser) {
         _sessionid = makeRandStr(12);
         _sdp_track = sdpParser.getAvailableTrack();
         if (_sdp_track.empty()) {
+            DebugL << syscall(SYS_gettid);
+            TraceL << "sdp track is empty";
             // sdp无效
             static constexpr auto err = "sdp中无有效track";
             sendRtspResponse("403 Forbidden", { "Content-Type", "text/plain" }, err);
@@ -1027,6 +1033,7 @@ void RtspSession::startListenPeerUdpData(int track_idx) {
     InfoL << "srcIP:" << get_peer_ip().data();
 
     auto onUdpData = [weakSelf,srcIP](const Buffer::Ptr &buf, struct sockaddr *peer_addr, int interleaved) {
+        DebugL << syscall(SYS_gettid);
         InfoL << "line 1014???";
         auto strongSelf = weakSelf.lock();
         InfoL << "line 1016???";
@@ -1081,8 +1088,10 @@ void RtspSession::startListenPeerUdpData(int track_idx) {
                     WarnP(this) << "udp端口为空:" << interleaved;
                     return;
                 }
+                DebugL << syscall(SYS_gettid);
                 TraceL << "point 111";
                 sock->setOnRead([onUdpData,interleaved](const Buffer::Ptr &pBuf, struct sockaddr *pPeerAddr , int addr_len){
+                    DebugL << syscall(SYS_gettid);
                     TraceL << "point 112";
                     InfoL << onUdpData(pBuf, pPeerAddr, interleaved);
                     TraceL << "point 113";

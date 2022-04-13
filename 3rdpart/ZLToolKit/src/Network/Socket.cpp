@@ -271,9 +271,11 @@ bool Socket::attachEvent(const SockFD::Ptr &sock, bool is_udp) {
         if (event & EventPoller::Event_Write) {
             strong_self->onWriteAble(strong_sock);
         }
+        TraceL << "attach Event.3";
         if (event & EventPoller::Event_Error) {
             strong_self->emitErr(getSockErr(strong_sock));
         }
+        TraceL << "attach Event.4";
     });
 
     return -1 != result;
@@ -519,6 +521,7 @@ bool Socket::bindUdpSock(uint16_t port, const string &local_ip, bool enable_reus
     if (!attachEvent(sock, true)) {
         return false;
     }
+    DebugL << syscall(SYS_gettid);
     TraceL << "bindUdpSock.1";
     LOCK_GUARD(_mtx_sock_fd);
     TraceL << "bindUdpSock.2";

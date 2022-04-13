@@ -17,6 +17,9 @@
 #include "Util/MD5.h"
 #include "Util/base64.h"
 #include "Rtcp/Rtcp.h"
+//test by lee
+#include <sys/syscall.h>
+#include <unistd.h>
 using namespace toolkit;
 using namespace std;
 
@@ -450,6 +453,8 @@ void RtspPlayer::speed(float speed) {
 }
 
 void RtspPlayer::handleResPAUSE(const Parser& parser,int type) {
+    DebugL << syscall(SYS_gettid);
+    InfoL << "point 1";
     if (parser.Url() != "200") {
         switch (type) {
             case type_pause:
@@ -489,6 +494,7 @@ void RtspPlayer::handleResPAUSE(const Parser& parser,int type) {
 }
 
 void RtspPlayer::onWholeRtspPacket(Parser &parser) {
+    DebugL << syscall(SYS_gettid);
     InfoL << "point 0";
     try {
         decltype(_on_response) func;
@@ -518,6 +524,8 @@ void RtspPlayer::onRtpPacket(const char *data, size_t len) {
 
 //此处预留rtcp处理函数
 void RtspPlayer::onRtcpPacket(int track_idx, SdpTrack::Ptr &track, uint8_t *data, size_t len){
+    DebugL << syscall(SYS_gettid);
+    InfoL << "point 4";
     auto rtcp_arr = RtcpHeader::loadFromBytes((char *) data, len);
     for (auto &rtcp : rtcp_arr) {
         _rtcp_context[track_idx]->onRtcp(rtcp);
@@ -536,6 +544,8 @@ void RtspPlayer::onRtpSorted(RtpPacket::Ptr rtppt, int trackidx){
 }
 
 float RtspPlayer::getPacketLossRate(TrackType type) const{
+    DebugL << syscall(SYS_gettid);
+    InfoL << "point 5";
     size_t lost = 0, expected = 0;
     try {
         auto track_idx = getTrackIndexByTrackType(type);
@@ -577,6 +587,8 @@ void RtspPlayer::sendRtspRequest(const string &cmd, const string &url, const std
 }
 
 void RtspPlayer::sendRtspRequest(const string &cmd, const string &url,const StrCaseMap &header_const) {
+    DebugL << syscall(SYS_gettid);
+    InfoL << "point 6";
     auto header = header_const;
     header.emplace("CSeq",StrPrinter << _cseq_send++);
     header.emplace("User-Agent",kServerName);
