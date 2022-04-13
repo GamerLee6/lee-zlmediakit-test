@@ -17,11 +17,6 @@
 #include "Thread/semaphore.h"
 #include "Poller/EventPoller.h"
 #include "Thread/WorkThreadPool.h"
-//testing by lee
-#include <sys/syscall.h>
-#include <unistd.h>
-#include <execinfo.h>
-#include <cxxabi.h>
 using namespace std;
 
 #define LOCK_GUARD(mtx) lock_guard<decltype(mtx)> lck(mtx)
@@ -77,78 +72,11 @@ Socket::~Socket() {
     closeSock();
 }
 
-
-// void traceBack() {
-//     size_t max_funcnamesize = 1024;
-//     void* addrlist[32];
-//     int addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void*));
-//     char** symbollist = backtrace_symbols(addrlist, addrlen);
-//     // for (int i = 0; i < addrlen; i++) {
-//     //     printf("%p : %s\n", addrlist[i], demangle(symbollist[i]).c_str());
-//     // }
-//     char* funcname=(char*)malloc(max_funcnamesize);
-// 	size_t funcnamesize=max_funcnamesize;
-//     for(int i = 1; i < addrlen; i++){
-// 		char *begin_name = 0, *begin_offset = 0, *end_offset = 0;
-
-// 		// find parentheses and +address offset surrounding the mangled name:
-// 		// ./module(function+0x15c) [0x8048a6d]
-// 		for(char *p = symbollist[i]; *p; ++p){
-// 			if(*p == '(')
-// 				begin_name = p;
-// 			else if(*p == '+')
-// 				begin_offset = p;
-// 			else if(*p == ')' && begin_offset){
-// 				end_offset = p;
-// 				break;
-// 			}
-// 		}
-
-// 		if(begin_name && begin_offset && end_offset
-// 				&& begin_name < begin_offset){
-// 			*begin_name++ = '\0';
-// 			*begin_offset++ = '\0';
-// 			*end_offset = '\0';
-
-// 			// mangled name is now in [begin_name, begin_offset) and caller
-// 			// offset in [begin_offset, end_offset). now apply
-// 			// __cxa_demangle():
-
-// 			int status;
-// 			char* ret = abi::__cxa_demangle(begin_name,funcname, &funcnamesize, &status);
-// 			if(status == 0){
-// 				funcname = ret; // use possibly realloc()-ed string
-//                 printf("%p : %s : %s + %s\n", addrlist[i], symbollist[i], funcname, begin_offset);
-// 				// DebugL <<"\n  "<<symbollist[i]<<" : "<<funcname<<"+"<<begin_offset;
-// 			}else{
-// 				// demangling failed. Output function name as a C function with
-// 				// no arguments.
-//                 printf("%p : %s : %s + %s\n", addrlist[i], symbollist[i], begin_name, begin_offset);
-// 				// DebugL <<"\n  "<<symbollist[i]<<" : "<<begin_name<<"()+"<<begin_offset;
-// 			}
-// 		}else{
-// 			// couldn't parse the line? print the whole line.
-// 			DebugL <<"\n  "<<symbollist[i];
-// 		}
-// 	}
-
-// 	free(funcname);
-// 	free(symbollist);
-// }
-
 void Socket::setOnRead(onReadCB cb) {
-    DebugL << syscall(SYS_gettid);
-    TraceL << "set On Read";
-
-    // traceBack();
-
     LOCK_GUARD(_mtx_event);
-    TraceL << "Lock";
     if (cb) {
-        TraceL << "set On Read.0";
         _on_read = std::move(cb);
     } else {
-        TraceL << "set On Read.1";
         _on_read = [](const Buffer::Ptr &buf, struct sockaddr *, int) {
             WarnL << "Socket not set read callback, data ignored:" << buf->size();
         };
@@ -285,8 +213,6 @@ void Socket::connect(const string &url, uint16_t port, onErrCB con_cb_in, float 
 }
 
 void Socket::onConnected(const SockFD::Ptr &sock, const onErrCB &cb) {
-    DebugL << syscall(SYS_gettid);
-    TraceL << "on connected";
     auto err = getSockErr(sock, false);
     if (err) {
         //连接失败
@@ -296,59 +222,43 @@ void Socket::onConnected(const SockFD::Ptr &sock, const onErrCB &cb) {
 
     //先删除之前的可写事件监听
     _poller->delEvent(sock->rawFd());
-    TraceL << "on connected.0";
     if (!attachEvent(sock, false)) {
         //连接失败
         cb(SockException(Err_other, "add event to poller failed when connected"));
         return;
     }
-    TraceL << "on connected.1";
     sock->setConnected();
     //连接成功
     cb(err);
 }
 
 bool Socket::attachEvent(const SockFD::Ptr &sock, bool is_udp) {
-    DebugL << syscall(SYS_gettid);
-    TraceL << "attach Event";
     weak_ptr<Socket> weak_self = shared_from_this();
     weak_ptr<SockFD> weak_sock = sock;
     _enable_recv = true;
     _read_buffer = _poller->getSharedBuffer();
-    TraceL << "attach Event.4s";
     int result = _poller->addEvent(sock->rawFd(), EventPoller::Event_Read | EventPoller::Event_Error | EventPoller::Event_Write, [weak_self,weak_sock,is_udp](int event) {
-        DebugL << syscall(SYS_gettid);
-        // traceBack();
-        TraceL << "attach Event.0";
         auto strong_self = weak_self.lock();
         auto strong_sock = weak_sock.lock();
         if (!strong_self || !strong_sock) {
             return;
         }
 
-        DebugL << syscall(SYS_gettid);
-        TraceL << "attach Event.1";
         if (event & EventPoller::Event_Read) {
             strong_self->onRead(strong_sock, is_udp);
         }
-        DebugL << syscall(SYS_gettid);
-        TraceL << "attach Event.2";
         if (event & EventPoller::Event_Write) {
             strong_self->onWriteAble(strong_sock);
         }
-        TraceL << "attach Event.3";
         if (event & EventPoller::Event_Error) {
             strong_self->emitErr(getSockErr(strong_sock));
         }
-        TraceL << "attach Event.4";
     });
 
     return -1 != result;
 }
 
 ssize_t Socket::onRead(const SockFD::Ptr &sock, bool is_udp) noexcept{
-    DebugL << syscall(SYS_gettid);
-    TraceL << "onRead";
     ssize_t ret = 0, nread = 0;
     auto sock_fd = sock->rawFd();
 
@@ -359,7 +269,6 @@ ssize_t Socket::onRead(const SockFD::Ptr &sock, bool is_udp) noexcept{
     struct sockaddr addr;
     socklen_t len = sizeof(struct sockaddr);
 
-    TraceL << "onRead.1";
     while (_enable_recv) {
         do {
             nread = recvfrom(sock_fd, data, capacity, 0, &addr, &len);
@@ -372,37 +281,28 @@ ssize_t Socket::onRead(const SockFD::Ptr &sock, bool is_udp) noexcept{
             return ret;
         }
 
-        TraceL << "onRead.2";
         if (nread == -1) {
-            TraceL << "onRead.2.0";
             auto err = get_uv_error(true);
-            TraceL << "onRead.2.1";
             if (err != UV_EAGAIN) {
-                TraceL << "onRead.2.2";
                 emitErr(toSockException(err));
             }
             return ret;
         }
 
-        TraceL << "onRead.2-1";
         ret += nread;
         data[nread] = '\0';
         //设置buffer有效数据大小
         _read_buffer->setSize(nread);
 
-        TraceL << "onRead.3";
         //触发回调
         LOCK_GUARD(_mtx_event);
-        TraceL << "onRead.4";
         try {
-            TraceL << "start _on_read";
             //此处捕获异常，目的是防止数据未读尽，epoll边沿触发失效的问题
             _on_read(_read_buffer, &addr, len);
         } catch (std::exception &ex) {
             ErrorL << "触发socket on_read事件时,捕获到异常:" << ex.what();
         }
     }
-    TraceL << "onRead.5";
     return 0;
 }
 
@@ -536,8 +436,6 @@ uint64_t Socket::elapsedTimeAfterFlushed(){
 }
 
 bool Socket::listen(const SockFD::Ptr &sock){
-    DebugL << syscall(SYS_gettid);
-    TraceL << "listen";
     closeSock();
     weak_ptr<SockFD> weak_sock = sock;
     weak_ptr<Socket> weak_self = shared_from_this();
@@ -545,15 +443,12 @@ bool Socket::listen(const SockFD::Ptr &sock){
     int result = _poller->addEvent(sock->rawFd(), EventPoller::Event_Read | EventPoller::Event_Error, [weak_self, weak_sock](int event) {
         auto strong_self = weak_self.lock();
         auto strong_sock = weak_sock.lock();
-        TraceL << "listen.0";
         if (!strong_self || !strong_sock) {
             return;
         }
-        TraceL << "listen.1";
         strong_self->onAccept(strong_sock, event);
     });
 
-    TraceL << "listen.2";
     if (result == -1) {
         return false;
     }
@@ -564,8 +459,6 @@ bool Socket::listen(const SockFD::Ptr &sock){
 }
 
 bool Socket::listen(uint16_t port, const string &local_ip, int backlog) {
-    DebugL << syscall(SYS_gettid);
-    TraceL << "Socket::listen";
     int sock = SockUtil::listen(port, local_ip.data(), backlog);
     if (sock == -1) {
         return false;
@@ -574,29 +467,22 @@ bool Socket::listen(uint16_t port, const string &local_ip, int backlog) {
 }
 
 bool Socket::bindUdpSock(uint16_t port, const string &local_ip, bool enable_reuse) {
-    DebugL << syscall(SYS_gettid);
-    TraceL << "bindUdpSock";
     closeSock();
     int fd = SockUtil::bindUdpSock(port, local_ip.data(), enable_reuse);
     if (fd == -1) {
         return false;
     }
-    TraceL << "bindUdpSock.0";
     auto sock = makeSock(fd, SockNum::Sock_UDP);
     if (!attachEvent(sock, true)) {
         return false;
     }
-    DebugL << syscall(SYS_gettid);
-    TraceL << "bindUdpSock.1";
+
     LOCK_GUARD(_mtx_sock_fd);
-    TraceL << "bindUdpSock.2";
     _sock_fd = sock;
     return true;
 }
 
 int Socket::onAccept(const SockFD::Ptr &sock, int event) noexcept {
-    DebugL << syscall(SYS_gettid);
-    TraceL << "on accept";
     int fd;
     while (true) {
         if (event & EventPoller::Event_Read) {
@@ -604,7 +490,6 @@ int Socket::onAccept(const SockFD::Ptr &sock, int event) noexcept {
                 fd = (int)accept(sock->rawFd(), nullptr, nullptr);
             } while (-1 == fd && UV_EINTR == get_uv_error(true));
 
-            TraceL << "on accept.0";
             if (fd == -1) {
                 int err = get_uv_error(true);
                 if (err == UV_EAGAIN) {
@@ -617,7 +502,6 @@ int Socket::onAccept(const SockFD::Ptr &sock, int event) noexcept {
                 return -1;
             }
 
-            TraceL << "on accept.1";
             SockUtil::setNoSigpipe(fd);
             SockUtil::setNoBlocked(fd);
             SockUtil::setNoDelay(fd);
@@ -628,7 +512,6 @@ int Socket::onAccept(const SockFD::Ptr &sock, int event) noexcept {
 
             Socket::Ptr peer_sock;
             try {
-                TraceL << "on accept.2";
                 //此处捕获异常，目的是防止socket未accept尽，epoll边沿触发失效的问题
                 LOCK_GUARD(_mtx_event);
                 //拦截Socket对象的构造
@@ -644,13 +527,11 @@ int Socket::onAccept(const SockFD::Ptr &sock, int event) noexcept {
                 peer_sock = Socket::createSocket(_poller, false);
             }
 
-            TraceL << "on accept.3";
             //设置好fd,以备在onAccept事件中可以正常访问该fd
             auto peer_sock_fd = peer_sock->setPeerSock(fd);
 
             shared_ptr<void> completed(nullptr, [peer_sock, peer_sock_fd](void *) {
                 try {
-                    TraceL << "on accept.4";
                     //然后把该fd加入poll监听(确保先触发onAccept事件然后再触发onRead等事件)
                     if (!peer_sock->attachEvent(peer_sock_fd, false)) {
                         //加入poll监听失败，触发onErr事件，通知该Socket无效
@@ -890,8 +771,6 @@ const EventPoller::Ptr &Socket::getPoller() const{
 }
 
 bool Socket::cloneFromListenSocket(const Socket &other){
-    DebugL << syscall(SYS_gettid);
-    TraceL << "cloneFromListenSocket";
     SockFD::Ptr sock;
     {
         LOCK_GUARD(other._mtx_sock_fd);

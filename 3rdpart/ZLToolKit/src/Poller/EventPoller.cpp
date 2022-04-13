@@ -92,14 +92,12 @@ EventPoller::~EventPoller() {
 
 int EventPoller::addEvent(int fd, int event, PollEventCB cb) {
     TimeTicker();
-    TraceL << "addEvent";
     if (!cb) {
         WarnL << "PollEventCB 为空!";
         return -1;
     }
 
     if (isCurrentThread()) {
-        TraceL << "addEvent.0";
 #if defined(HAS_EPOLL)
         struct epoll_event ev = {0};
         ev.events = (toEpoll(event)) | EPOLLEXCLUSIVE;
@@ -126,10 +124,8 @@ int EventPoller::addEvent(int fd, int event, PollEventCB cb) {
     }
 
     async([this, fd, event, cb]() {
-        TraceL << "addEvent.1";
         addEvent(fd, event, std::move(const_cast<PollEventCB &>(cb)));
     });
-    TraceL << "addEvent.2";
     return 0;
 }
 
@@ -267,9 +263,7 @@ EventPoller::Ptr EventPoller::getCurrentPoller() {
 }
 
 void EventPoller::runLoop(bool blocked, bool ref_self) {
-    TraceL << "run loop";
     if (blocked) {
-        TraceL << "run loop.blocked";
         ThreadPool::setPriority(_priority);
         lock_guard<mutex> lck(_mtx_running);
         _loop_thread_id = this_thread::get_id();
@@ -280,7 +274,6 @@ void EventPoller::runLoop(bool blocked, bool ref_self) {
         _exit_flag = false;
         uint64_t minDelay;
 #if defined(HAS_EPOLL)
-        TraceL << "run loop.block.has_epoll";
         struct epoll_event events[EPOLL_SIZE];
         while (!_exit_flag) {
             minDelay = getMinDelay();
@@ -308,7 +301,6 @@ void EventPoller::runLoop(bool blocked, bool ref_self) {
             }
         }
 #else
-        TraceL << "run loop.block.not_has_epoll";
         int ret, max_fd;
         FdSet set_read, set_write, set_err;
         List<Poll_Record::Ptr> callback_list;
@@ -375,7 +367,6 @@ void EventPoller::runLoop(bool blocked, bool ref_self) {
         }
 #endif //HAS_EPOLL
     } else {
-        TraceL << "run loop.un_block";
         _loop_thread = new thread(&EventPoller::runLoop, this, true, ref_self);
         _sem_run_started.wait();
     }
