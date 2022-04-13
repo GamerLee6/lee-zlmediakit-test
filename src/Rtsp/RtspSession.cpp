@@ -814,19 +814,19 @@ void RtspSession::handleReq_Setup(const Parser &parser) {
         //设置rtp发送目标地址
         peerAddr.sin_family = AF_INET;
         peerAddr.sin_port = htons(ui16RtpPort);
-        // peerAddr.sin_addr.s_addr = inet_addr(get_peer_ip().data());
-        peerAddr.sin_addr.s_addr = inet_addr("0.0.0.0");
+        peerAddr.sin_addr.s_addr = inet_addr(get_peer_ip().data());
+        // peerAddr.sin_addr.s_addr = inet_addr("0.0.0.0");
         bzero(&(peerAddr.sin_zero), sizeof peerAddr.sin_zero);
-        pr.first->bindPeerAddr((struct sockaddr *) (&peerAddr));//why???
+        // DebugL << pr.first->bindPeerAddr((struct sockaddr *) (&peerAddr));//why???
         InfoL << "rtp/rtcp dst ip:" << get_peer_ip().data();
 
         //设置rtcp发送目标地址
         peerAddr.sin_family = AF_INET;
         peerAddr.sin_port = htons(ui16RtcpPort);
-        // peerAddr.sin_addr.s_addr = inet_addr(get_peer_ip().data());
-        peerAddr.sin_addr.s_addr = inet_addr("0.0.0.0");
+        peerAddr.sin_addr.s_addr = inet_addr(get_peer_ip().data());
+        // peerAddr.sin_addr.s_addr = inet_addr("0.0.0.0");
         bzero(&(peerAddr.sin_zero), sizeof peerAddr.sin_zero);
-        pr.second->bindPeerAddr((struct sockaddr *) (&peerAddr));//why???
+        // DebugL << pr.second->bindPeerAddr((struct sockaddr *) (&peerAddr));//why???
         InfoL << "server_port=" << pr.first->get_local_port() << "-" << pr.second->get_local_port();
 
         //尝试获取客户端nat映射地址
