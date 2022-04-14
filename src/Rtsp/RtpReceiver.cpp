@@ -30,7 +30,6 @@ void RtpTrack::clear() {
 }
 
 RtpPacket::Ptr RtpTrack::inputRtp(TrackType type, int sample_rate, uint8_t *ptr, size_t len) {
-    InfoL << "point 1";
     if (len < RtpPacket::kRtpHeaderSize) {
         WarnL << "rtp包太小:" << len;
         return nullptr;

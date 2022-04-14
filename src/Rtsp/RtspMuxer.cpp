@@ -17,7 +17,6 @@ using namespace toolkit;
 namespace mediakit {
 
 void RtspMuxer::onRtp(RtpPacket::Ptr in, bool is_key) {
-    InfoL << "point1";
     if (_live) {
         if (_rtp_stamp[in->type] != in->getHeader()->stamp) {
             //rtp时间戳变化才计算ntp，节省cpu资源
@@ -39,7 +38,6 @@ void RtspMuxer::onRtp(RtpPacket::Ptr in, bool is_key) {
 }
 
 RtspMuxer::RtspMuxer(const TitleSdp::Ptr &title) {
-    InfoL << "point2";
     if (!title) {
         _sdp = std::make_shared<TitleSdp>()->getSdp();
     } else {
@@ -55,7 +53,6 @@ RtspMuxer::RtspMuxer(const TitleSdp::Ptr &title) {
 }
 
 bool RtspMuxer::addTrack(const Track::Ptr &track) {
-    InfoL << "point3";
     //根据track生成sdp
     Sdp::Ptr sdp = track->getSdp();
     if (!sdp) {
@@ -85,7 +82,6 @@ void RtspMuxer::trySyncTrack() {
 }
 
 bool RtspMuxer::inputFrame(const Frame::Ptr &frame) {
-    InfoL << "point4";
     auto &encoder = _encoder[frame->getTrackType()];
     return encoder ? encoder->inputFrame(frame) : false;
 }

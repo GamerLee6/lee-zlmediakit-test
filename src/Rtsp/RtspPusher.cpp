@@ -138,7 +138,6 @@ void RtspPusher::onRecv(const Buffer::Ptr &buf){
 }
 
 void RtspPusher::onWholeRtspPacket(Parser &parser) {
-    InfoL << "point 0";
     decltype(_on_res_func) func;
     _on_res_func.swap(func);
     if (func) {

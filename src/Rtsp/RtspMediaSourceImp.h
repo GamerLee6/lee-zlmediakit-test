@@ -40,7 +40,6 @@ public:
      * 设置sdp
      */
     void setSdp(const std::string &strSdp) override {
-        InfoL << "point 2";
         if (!getSdp().empty()) {
             return;
         }
@@ -52,20 +51,17 @@ public:
      * 输入rtp并解析
      */
     void onWrite(RtpPacket::Ptr rtp, bool key_pos) override {
-        InfoL << "point 1";
         if (_all_track_ready && !_muxer->isEnabled()) {
             //获取到所有Track后，并且未开启转协议，那么不需要解复用rtp
             //在关闭rtp解复用后，无法知道是否为关键帧，这样会导致无法秒开，或者开播花屏
             key_pos = rtp->type == TrackVideo;
         } else {
             //需要解复用rtp
-            InfoL << "point 1.1";
             key_pos = _demuxer->inputRtp(rtp);
         }
         GET_CONFIG(bool, directProxy, Rtsp::kDirectProxy);
         if (directProxy) {
             //直接代理模式才直接使用原始rtp
-            InfoL << "point 1.2";
             RtspMediaSource::onWrite(std::move(rtp), key_pos);
         }
     }
@@ -81,7 +77,6 @@ public:
      * 设置协议转换选项
      */
     void setProtocolOption(const ProtocolOption &option) {
-        InfoL << "point 3";
         GET_CONFIG(bool, direct_proxy, Rtsp::kDirectProxy);
         //开启直接代理模式时，rtsp直接代理，不重复产生；但是有些rtsp推流端，由于sdp中已有sps pps，rtp中就不再包括sps pps,
         //导致rtc无法播放，所以在rtsp推流rtc播放时，建议关闭直接代理模式

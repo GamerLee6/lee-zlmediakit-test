@@ -255,7 +255,6 @@ void RtspPlayer::sendSetup(unsigned int track_idx) {
 }
 
 void RtspPlayer::handleResSETUP(const Parser &parser, unsigned int track_idx) {
-    InfoL << "point 9";
     if (parser.Url() != "200") {
         throw std::runtime_error(StrPrinter << "SETUP:" << parser.Url() << " " << parser.Tail() << endl);
     }
@@ -289,7 +288,6 @@ void RtspPlayer::handleResSETUP(const Parser &parser, unsigned int track_idx) {
         sscanf(transport_map["interleaved"].data(), "%d-%d", &interleaved_rtp, &interleaved_rtcp);
         _sdp_track[track_idx]->_interleaved = interleaved_rtp;
     } else {
-        InfoL << "point 9.1";
         auto port_str = transport_map[(_rtp_type == Rtsp::RTP_MULTICAST ? "port" : "server_port")];
         int rtp_port, rtcp_port;
         sscanf(port_str.data(), "%d-%d", &rtp_port, &rtcp_port);
@@ -323,7 +321,6 @@ void RtspPlayer::handleResSETUP(const Parser &parser, unsigned int track_idx) {
             rtpto.sin_addr.s_addr = inet_addr(get_peer_ip().data());
             pRtcpSockRef->bindPeerAddr((struct sockaddr *)&(rtpto));
         } else {
-            InfoL << "point 9.2";
             createUdpSockIfNecessary(track_idx);
             //udp单播
             struct sockaddr_in rtpto;
@@ -344,9 +341,7 @@ void RtspPlayer::handleResSETUP(const Parser &parser, unsigned int track_idx) {
 
         auto srcIP = inet_addr(get_peer_ip().data());
         weak_ptr<RtspPlayer> weakSelf = dynamic_pointer_cast<RtspPlayer>(shared_from_this());
-        InfoL << "point 9.3";
         //设置rtp over udp接收回调处理函数
-        DebugL << "rtspplayer call";
         pRtpSockRef->setOnRead([srcIP, track_idx, weakSelf](const Buffer::Ptr &buf, struct sockaddr *addr , int addr_len) {
             auto strongSelf = weakSelf.lock();
             if (!strongSelf) {
@@ -361,9 +356,7 @@ void RtspPlayer::handleResSETUP(const Parser &parser, unsigned int track_idx) {
         });
 
         if(pRtcpSockRef) {
-            InfoL << "point 9.4";
             //设置rtcp over udp接收回调处理函数
-            DebugL << "rtspplayer call";
             pRtcpSockRef->setOnRead([srcIP, track_idx, weakSelf](const Buffer::Ptr &buf, struct sockaddr *addr , int addr_len) {
                 auto strongSelf = weakSelf.lock();
                 if (!strongSelf) {
@@ -377,7 +370,6 @@ void RtspPlayer::handleResSETUP(const Parser &parser, unsigned int track_idx) {
             });
         }
     }
-    InfoL << "point 9.5";
 
     if (track_idx < _sdp_track.size() - 1) {
         //需要继续发送SETUP命令
@@ -453,8 +445,6 @@ void RtspPlayer::speed(float speed) {
 }
 
 void RtspPlayer::handleResPAUSE(const Parser& parser,int type) {
-    DebugL << syscall(SYS_gettid);
-    InfoL << "point 1";
     if (parser.Url() != "200") {
         switch (type) {
             case type_pause:
@@ -494,8 +484,6 @@ void RtspPlayer::handleResPAUSE(const Parser& parser,int type) {
 }
 
 void RtspPlayer::onWholeRtspPacket(Parser &parser) {
-    DebugL << syscall(SYS_gettid);
-    InfoL << "point 0";
     try {
         decltype(_on_response) func;
         _on_response.swap(func);
@@ -510,7 +498,6 @@ void RtspPlayer::onWholeRtspPacket(Parser &parser) {
 }
 
 void RtspPlayer::onRtpPacket(const char *data, size_t len) {
-    InfoL << "point 8";
     int trackIdx = -1;
     uint8_t interleaved = data[1];
     if(interleaved %2 == 0){
@@ -524,8 +511,6 @@ void RtspPlayer::onRtpPacket(const char *data, size_t len) {
 
 //此处预留rtcp处理函数
 void RtspPlayer::onRtcpPacket(int track_idx, SdpTrack::Ptr &track, uint8_t *data, size_t len){
-    DebugL << syscall(SYS_gettid);
-    InfoL << "point 4";
     auto rtcp_arr = RtcpHeader::loadFromBytes((char *) data, len);
     for (auto &rtcp : rtcp_arr) {
         _rtcp_context[track_idx]->onRtcp(rtcp);
@@ -544,8 +529,6 @@ void RtspPlayer::onRtpSorted(RtpPacket::Ptr rtppt, int trackidx){
 }
 
 float RtspPlayer::getPacketLossRate(TrackType type) const{
-    DebugL << syscall(SYS_gettid);
-    InfoL << "point 5";
     size_t lost = 0, expected = 0;
     try {
         auto track_idx = getTrackIndexByTrackType(type);
@@ -587,8 +570,6 @@ void RtspPlayer::sendRtspRequest(const string &cmd, const string &url, const std
 }
 
 void RtspPlayer::sendRtspRequest(const string &cmd, const string &url,const StrCaseMap &header_const) {
-    DebugL << syscall(SYS_gettid);
-    InfoL << "point 6";
     auto header = header_const;
     header.emplace("CSeq",StrPrinter << _cseq_send++);
     header.emplace("User-Agent",kServerName);

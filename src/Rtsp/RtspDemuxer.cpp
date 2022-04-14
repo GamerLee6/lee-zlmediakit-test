@@ -23,7 +23,6 @@ void RtspDemuxer::loadSdp(const string &sdp) {
 }
 
 void RtspDemuxer::loadSdp(const SdpParser &attr) {
-    InfoL << "point 1";
     auto tracks = attr.getAvailableTrack();
     for (auto &track : tracks) {
         switch (track->_type) {
@@ -53,7 +52,6 @@ float RtspDemuxer::getDuration() const {
 }
 
 bool RtspDemuxer::inputRtp(const RtpPacket::Ptr &rtp) {
-    InfoL << "point 2";
     InfoL << "rtp->type:" << rtp->type;
     switch (rtp->type) {
         case TrackVideo: {
@@ -106,7 +104,6 @@ void RtspDemuxer::makeAudioTrack(const SdpTrack::Ptr &audio) {
 }
 
 void RtspDemuxer::makeVideoTrack(const SdpTrack::Ptr &video) {
-    InfoL << "point 3";
     if (_video_rtp_decoder) {
         return;
     }

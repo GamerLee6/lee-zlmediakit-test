@@ -232,14 +232,11 @@ void RtspSession::onWholeRtspPacket(Parser &parser) {
 }
 
 void RtspSession::onRtpPacket(const char *data, size_t len) {
-    // InfoL << "point 1" ;
     uint8_t interleaved = data[1];
     if (interleaved % 2 == 0) {
-        // InfoL << "point 1.0" ;
         auto track_idx = getTrackIndexByInterleaved(interleaved);
         handleOneRtp(track_idx, _sdp_track[track_idx]->_type, _sdp_track[track_idx]->_samplerate, (uint8_t *) data + RtpPacket::kRtpTcpHeaderSize, len - RtpPacket::kRtpTcpHeaderSize);
     } else {
-        // InfoL << "point 1.1" ;
         auto track_idx = getTrackIndexByInterleaved(interleaved - 1);
         onRtcpPacket(track_idx, _sdp_track[track_idx], data + RtpPacket::kRtpTcpHeaderSize, len - RtpPacket::kRtpTcpHeaderSize);
     }
@@ -266,15 +263,11 @@ ssize_t RtspSession::getContentLength(Parser &parser) {
 }
 
 void RtspSession::handleReq_Options(const Parser &parser) {
-    // DebugL << syscall(SYS_gettid);
-    // InfoL << "point 11";
     //支持这些命令
     sendRtspResponse("200 OK",{"Public" , "OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE, ANNOUNCE, RECORD, SET_PARAMETER, GET_PARAMETER"});
 }
 
 void RtspSession::handleReq_ANNOUNCE(const Parser &parser) {
-    // DebugL << syscall(SYS_gettid);
-    // InfoL << "point 2";
     auto full_url = parser.FullUrl();
     _content_base = full_url;
     if (end_with(full_url, ".sdp")) {
@@ -289,7 +282,6 @@ void RtspSession::handleReq_ANNOUNCE(const Parser &parser) {
         sendRtspResponse("403 Forbidden", {"Content-Type", "text/plain"}, err);
         throw SockException(Err_shutdown, StrPrinter << err << ":" << full_url);
     }
-    // InfoL << "point 2.2";
 
     auto onRes = [this, parser, full_url](const string &err, const ProtocolOption &option) {
         if (!err.empty()) {
@@ -303,7 +295,6 @@ void RtspSession::handleReq_ANNOUNCE(const Parser &parser) {
         auto push_failed = (bool)src;
 
         while (src) {
-            // InfoL << "point 2.3";
             //尝试断连后继续推流
             auto rtsp_src = dynamic_pointer_cast<RtspMediaSourceImp>(src);
             if (!rtsp_src) {
@@ -786,6 +777,12 @@ void RtspSession::handleReq_Setup(const Parser &parser) {
         DebugL << parser.Url();
         DebugL << parser.Content();
         DebugL << parser.Params();
+        DebugL << parser.Tail();
+        DebugL << parser.FullUrl();
+        DebugL << parser["Transport"];
+        for (auto it = parser.getHeader().begin(); it != parser.getHeader().end(); it++) {
+            InfoL << "Filed:" << it->first << "----Value:" << it->second; 
+        }
         string strClientPort = FindField(parser["Transport"].data(), "client_port=", NULL);
         uint16_t ui16RtpPort = atoi(FindField(strClientPort.data(), NULL, "-").data());
         uint16_t ui16RtcpPort = atoi(FindField(strClientPort.data(), "-", NULL).data());
@@ -1118,7 +1115,7 @@ void RtspSession::startListenPeerUdpData(int track_idx) {
                     return;
                 }
                 sock->setOnRead([onUdpData,interleaved](const Buffer::Ptr &pBuf, struct sockaddr *pPeerAddr , int addr_len){
-                    InfoL << onUdpData(pBuf, pPeerAddr, interleaved);
+                    onUdpData(pBuf, pPeerAddr, interleaved);
                 });
             };
             TraceP(_rtp_socks[track_idx]);
