@@ -776,11 +776,13 @@ void RtspSession::handleReq_Setup(const Parser &parser) {
         DebugL << parser.Method();
         DebugL << parser.Url();
         DebugL << parser.Content();
+        for (auto it = parser.getHeader().begin(); it != parser.getHeader().end(); it++) {
+            InfoL << "Filed:" << it->first << "----Value:" << it->second; 
+        }
         DebugL << parser.Params();
         DebugL << parser.Tail();
         DebugL << parser.FullUrl();
-        DebugL << parser["Transport"];
-        for (auto it = parser.getHeader().begin(); it != parser.getHeader().end(); it++) {
+        for (auto it = parser.getUrlArgs().begin(); it != parser.getUrlArgs().end(); it++) {
             InfoL << "Filed:" << it->first << "----Value:" << it->second; 
         }
         string strClientPort = FindField(parser["Transport"].data(), "client_port=", NULL);
